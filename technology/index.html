@@ -133,6 +133,113 @@
       background-color: rgba(255, 255, 255, 0.15);
     }
 
+    /* ── Mobile Dynamic Island ── */
+    @media (max-width: 767px) {
+        #dynamic-dock {
+            width: auto !important;
+            min-width: 0 !important;
+            height: 48px !important;
+            padding: 0 6px 0 14px;
+            border-radius: 9999px;
+            background: rgba(255,255,255,0.92) !important;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.08);
+            overflow: visible;
+        }
+        #dynamic-dock .dock-content-expanded { display: none !important; }
+        #dynamic-dock .dock-content-compact {
+            position: relative;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: none !important;
+            display: flex !important;
+            align-items: center;
+            padding: 0;
+            gap: 8px;
+        }
+        .mobile-menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .mobile-menu-btn:hover,
+        .mobile-menu-btn:active {
+            background: rgba(0,0,0,0.06);
+        }
+    }
+
+    /* Mobile dropdown panel */
+    .mobile-dropdown {
+        display: none;
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 99;
+        width: calc(100% - 32px);
+        max-width: 360px;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 20px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+        padding: 8px 0;
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px) scale(0.97);
+        transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    .mobile-dropdown.open {
+        display: block;
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    .mobile-dropdown a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 24px;
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        font-weight: 500;
+        color: #0A1D37;
+        text-decoration: none;
+        transition: background 0.15s;
+        border-radius: 12px;
+        margin: 2px 8px;
+    }
+    .mobile-dropdown a:hover,
+    .mobile-dropdown a:active {
+        background: rgba(10,29,55,0.06);
+    }
+    .mobile-dropdown a .material-symbols-outlined {
+        font-size: 20px;
+        color: #64748B;
+    }
+    .mobile-dropdown-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 98;
+        background: transparent;
+    }
+    .mobile-dropdown-backdrop.open {
+        display: block;
+    }
+    @media (min-width: 768px) {
+        .mobile-dropdown, .mobile-dropdown-backdrop { display: none !important; }
+        .mobile-menu-btn { display: none !important; }
+    }
+
     h1,
     h2,
     h3,
@@ -308,9 +415,29 @@
         <a href="../index.html" class="flex items-center">
           <img alt="R-FUSION Logo" class="h-6 w-auto object-contain" src="../rlogo.jpg">
         </a>
-      </div><span class="material-symbols-outlined text-[20px] text-slate-900">menu</span>
+      </div>
+      <span class="material-symbols-outlined text-[20px] text-slate-900 hidden md:inline" style="cursor:pointer">menu</span>
+      <button class="mobile-menu-btn md:hidden" id="mobile-menu-toggle" aria-label="Toggle navigation menu">
+        <span class="material-symbols-outlined text-[22px] text-slate-900">menu</span>
+      </button>
     </div>
   </nav>
+  <!-- Mobile Dropdown -->
+  <div class="mobile-dropdown-backdrop" id="mobile-backdrop"></div>
+  <div class="mobile-dropdown" id="mobile-dropdown">
+      <a href="../technology/index.html">
+          <span class="material-symbols-outlined">science</span> Technology
+      </a>
+      <a href="../whyrfusion/index.html">
+          <span class="material-symbols-outlined">help_outline</span> Why R-Fusion?
+      </a>
+      <a href="../aboutus/index.html">
+          <span class="material-symbols-outlined">group</span> About Us
+      </a>
+      <a href="../contactus/index.html">
+          <span class="material-symbols-outlined">mail</span> Contact
+      </a>
+  </div>
   <main class="min-h-[50vh] bg-white pt-20 md:pt-22">
     <section class="bg-white pt-4 pb-2 md:pt-6 md:pb-4">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
@@ -446,9 +573,11 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       const dock = document.getElementById('dynamic-dock');
+      const isMobile = () => window.innerWidth < 768;
       let isScrolled = false;
 
       const updateDockState = () => {
+        if (isMobile()) return;
         if (window.scrollY > 50) {
           if (!isScrolled) {
             dock.classList.remove('dock-expanded');
@@ -467,6 +596,7 @@
       window.addEventListener('scroll', updateDockState);
 
       dock.addEventListener('mouseenter', () => {
+        if (isMobile()) return;
         if (isScrolled) {
           dock.classList.remove('dock-compact');
           dock.classList.add('dock-expanded');
@@ -474,11 +604,36 @@
       });
 
       dock.addEventListener('mouseleave', () => {
+        if (isMobile()) return;
         if (isScrolled && window.scrollY > 50) {
           dock.classList.remove('dock-expanded');
           dock.classList.add('dock-compact');
         }
       });
+
+      // ── Mobile dropdown toggle ──
+      const toggle = document.getElementById('mobile-menu-toggle');
+      const dropdown = document.getElementById('mobile-dropdown');
+      const backdrop = document.getElementById('mobile-backdrop');
+      if (toggle && dropdown && backdrop) {
+          const icon = toggle.querySelector('.material-symbols-outlined');
+          const close = () => {
+              dropdown.classList.remove('open');
+              backdrop.classList.remove('open');
+              if (icon) icon.textContent = 'menu';
+          };
+          const open = () => {
+              dropdown.classList.add('open');
+              backdrop.classList.add('open');
+              if (icon) icon.textContent = 'close';
+          };
+          toggle.addEventListener('click', (e) => {
+              e.stopPropagation();
+              dropdown.classList.contains('open') ? close() : open();
+          });
+          backdrop.addEventListener('click', close);
+          dropdown.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+      }
     });
   </script>
   <!-- Footer -->
